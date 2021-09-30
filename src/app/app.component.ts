@@ -1,4 +1,4 @@
-import { Component, VERSION } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 
 @Component({
   selector: 'my-app',
@@ -19,13 +19,25 @@ import { Component, VERSION } from '@angular/core';
   </div>
   `,
   styleUrls: ['./app.component.css'],
+  host: {
+    '(document:keypress)': 'handleKeyboardEvent($event)',
+  },
 })
 export class AppComponent {
   showMarkdown = false;
   markdown = ``;
 
+  key: any;
+
   ngOnInit() {
     this.markdown = localStorage.getItem('markdown');
+  }
+
+  @HostListener('document:keypress', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    console.log(event);
+    this.key = event.key;
+    console.log(this.key);
   }
 
   saveMarkdown() {
@@ -41,4 +53,28 @@ export class AppComponent {
       this.showMarkdown = true;
     }
   }
+}
+
+// Method Decorator
+function Confirmable(message: string) {
+  return function (
+    target: Object,
+    key: string | symbol,
+    descriptor: PropertyDescriptor
+  ) {
+    const original = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+      const allow = confirm(message);
+
+      if (allow) {
+        const result = original.apply(this, args);
+        return result;
+      } else {
+        return null;
+      }
+    };
+
+    return descriptor;
+  };
 }
